@@ -1,0 +1,269 @@
+
+General notes
+-------------
+
+ This is Huntercoin as it was in version 1.2 with lots of things added:
+  Equipped weapons and items
+  NPCs to buy these from
+  Safe zones and teleporters
+  Character levels (and near immortal hunters)
+  Monsters roaming the map
+  A decentralized bounty and voting system
+
+ The game aims to demand only 1 move per day from players, making it possible for "players with jobs" to play competitively.
+
+ As a side effect, use of bots to gain an advantage is completely impossible.
+ The game also generates very few transactions, making it much more scalable.
+
+
+ Map layout:
+
+ Map center and the 4 color team bases are safe zones, combat is not possible here.
+ Four 2-way teleporters connect the center and the bases. Players of other colors can't walk
+ across the base perimeter (the tiles marked on map are still within the safe zone).
+
+ To teleport, stand still on the bright glowing tile.
+
+ Player characters can have equipped items that determine their combat abilities.
+ They will use their weapon automatically if hostiles are in range and not able to resist.
+ Equipment can be bought by running over the tile of a merchant NPC.
+
+ Movement in safe zones is the same as in Huntercoin (set path/waypoint with mouse click or ctrl-click, and "Go" button).
+
+ When a character starts to move, the last waypoint (end point of path) becomes the ordered target for next round (1 round == 2000 blocks)
+ if the final waypoint of the path is within 12 tiles distance to one of the flag poles (aka "Points of Interest").
+ otherwise the order is an unspecific "stay here".
+
+
+ Outside safezones:
+
+ If stepping on a tile outside of safe zones, the path/waypoints is forgotten, but not the ordered target.
+ Everyone will wait till begin of next round before going to that point.
+ If the order was given less than 500 blocks before the old round ended, it may not be effective for the new round,
+ and will only go into effect 1 round later. (i.e. 500 blocks = 100% chance, 250 blocks = 50% chance)
+
+ Movement orders to battlefield areas are irrevocable, and fights between characters are AI controlled.
+ Combat results depend only on character equipment and tactical situation. There are no hitpoints.
+
+
+
+Weapons
+-------
+
+If not resisted, all weapon effects are lethal (1 chronon until death)
+
+
+                                      effect     range(***)    strength(**)      affected tiles    min.clevel to use
+
+Staff of Poison Cloud                 poison     clevel        clevel-distance    several           2
+Staff of Fire Balls                   fire       clevel        clevel             1                 2
+Staff of the Reaper                   death      clevel        clevel             several           2
+Dagger (default weapon)               death      1             1                  several
+Arming Sword                          death      1             min(2,clevel)      several
+Estoc                                 death      1             clevel             several           2
+Crossbow                              death      2             1                  1                 1
+Arbalest                              death      3             1                  1                 2
+Staff of (lesser chain) Lightning     lightning  clevel        1                  1 (*)             2
+
+(*) resisted if target is wearing plate mail, but otherwise everyone on adjacent tiles (of the target) get zapped too.
+(**) maximum 3
+(***) maximum 7
+
+
+
+Monsters
+--------
+
+Monsters can't be controlled with waypoints.
+If a monster finds a heart, a normal soldier is created.
+Members of the weakest (color) team can't die but are converted to monsters instead.
+Members of other teams but the strongest are converted to monsters only if less monsters than PCs exist.
+
+
+
+Monster attacks
+---------------
+
+Redhead                spell equivalent to Staff of Fire Balls
+Zombie                 spell equivalent to Staff of Poison Cloud
+Reaper                 spell equivalent to Staff of the Reaper
+
+
+monster apocalypse: when a new round begins, monsters roam the map in search for coins.
+                    When facing an enemy, they fight unless outclassed (mons have same character level requirements as anyone else)
+                    or outnumbered 2:1.
+
+ -> monsters will not attack their former color/team mates
+ -> monsters resist the damage effect of their own spell if attack strength < clevel
+
+
+
+Items
+-----
+
+Amulet/Ring of Word of Recall          teleport to base, if failing morale check for 25 consecutive blocks (being chased by strong monster)
+
+Amulet of Life Saving                  teleport to base *instead* of death
+                                       this will destroy the amulet
+
+Plate Mail                             resist all damage effects if their strength < min(your character level, 3)
+                                       -2 range penalty when using staves
+
+Splinted Mail                          resist damage effects if their strength < min(your character level, 3)
+                                       but not effective against lightning
+                                       -2 range penalty when using staves
+
+Chain Mail                             resist damage effects if their strength < min(your character level, 3)
+                                       but not effective against lightning and fire
+                                       -1 range penalty when using staves
+
+Ring Mail                              resist damage effects if their strength < min(your character level, 3)
+                                       but not effective against lightning, poison and fire
+                                       -1 range penalty when using staves
+
+Amulet of Regeneration                 If the wearer is converted into a monster, it will slowly regenerate and become a normal PC again,
+                                       (this process is halted when less than 1/3 of all characters are monsters)
+
+
+AI + spell packages (free items):
+
+Book of Conquest                       Standard setting for passing/failing morale check
+
+Book of Survival                       Less overconfidence. Run away to fight another day
+
+Book of Resting                        like Book of Survival, additionally recall to base if no order for new round was given
+
+Book of Mark and Recall                like Book of Resting, additionally:
+                                       Memorize where you have been (the area). When order for new round was given,
+                                       teleport there, then walk to ordered target.
+                                       (for teleportation, the area's marker flag must be same color, or white)
+
+
+
+Balance between colors and between players and monsters
+-------------------------------------------------------
+
+ The game will resurrect dead hunters as merchant NPC or monster
+  if the dead hunter was a member of the weakest color team
+  or the dead hunter was not member of the strongest team and there are less monsters than hunters
+  or the number of monsters is less than half the number of hunters.
+
+ Monsters are always AI controlled and retain loyality to their team.
+
+ (The AI of) every character will be overconfident in combat
+  if the number of monsters is less than half the number of hunters
+  or In case of more characters on map than target value
+ This is high risk, high reward. Players can still choose to stay home at their team's base.
+
+ In case of less characters on map than target value, hearts will spawn (like in old Huntercoin times).
+ Running over a tile with a heart creates a free (no coins locked) character.
+
+
+Upkeep and Survival Points
+--------------------------
+
+ Player characters need 1 ration per round to survive. Rations are automatically bought and delivered.
+ Starving players are logged out and refunded.
+
+ 1 survival point (SP) is the reward for surviving a round, they are required for the "Command Champion" spell,
+ to get the help of the strongest monster of same color in combat. After the spell has been used, the
+ second strongest monster becomes the new champion and so on, while the required SP minimum goes lower with every block.
+ This will give new players a chance to win battles, even when the map is already crowded with leveled characters.
+
+
+All drinkables are delivered once per round with the rations:
+
+Pazunia Sun Ale                        if failing morale check and choosing an area to retreat, don't go back to area ordered by player
+
+Pale Sweet Marrow                      go back once
+
+Red Pit Ichor                          while the order is in effect, keep going back until the area is cleared
+                                       (or you die or teleport out with Word of Recall)
+
+
+
+Character level requirements
+----------------------------
+
+new character          20 coins (paid from wallet)
+
+clevel 2               100 coins (looted on map)
+clevel 3               200 coins
+clevel 4               400 coins
+clevel 5               800 coins
+clevel 6               1600 coins
+clevel 7               3200 coins
+clevel 8               6400 coins
+clevel 9               12800 coins
+
+
+
+ -> stepping on spawn strip (in one of the corners) delevels the character to back to lvl 1 and sends all coins to the wallet
+ -> staying on spawn strip for 30 blocks liquidates the character (only possible when setting path to walk back and forth on the strip)
+
+
+Bounty and voting system
+------------------------
+
+ Any player can request that all players vote of whether a specified bounty is granted. Format (console command):
+
+name_update Alice {\"msg_request\":\"1000\",\"msg_fee\":\"20\",\"msg_comment\":\""some text, perhaps link to forum post"\"}
+
+ In this example, Alice requests that a NPC sends 1000 coins to hunter Alice. If not specified, the fee is 1% of the requested amount.
+ Note the extra quotes in msg_comment, they are needed if the text contains any spaces.
+
+ The fee is paid immediately to the NPC. Alice will get rations for it, so that the fee slowly refunds itself.
+
+ Every 5 rounds (10000 blocks, or 1000 if devmode=8) the network chooses the request with the highest fee, and it goes into voting,
+ which also lasts 10000 blocks. To vote:
+
+name_update Bob {\"msg_vote\":\"1000\"}
+
+ or
+
+name_update Bob {\"msg_vote\":\"0\"}
+
+Or anything in between. It's not possible to vote for less than 0 or more than the requested amount. If the median vote is 0
+or the requested amount, then the actual bounty is the median (otherwise the average)
+
+Voters are rewarded with 3 rations, plus 2 rations for each heart soldier. The "soft" population limit imposed by the price per ration
+would be doubled if all players vote regularly.
+
+
+The bounty can be symbolic and less than the fee. In this case it's a simple Yes/No voting.
+
+
+
+Network-wide devmode
+--------------------
+
+Devmode is only available on testnet, and after the 3. red character has died and became NPC.
+Console commands:
+
+name_update devmode 3                                  manual movement only, allow normal waypoints everywhere
+
+name_update devmode 5                                  allow normal waypoints everywhere
+
+name_update devmode 6                                  cowardly monsters (run away if not outnumbering the enemy 2:1,
+                                                       normally they would run away if outnumbered 2:1)
+
+name_update devmode 7                                  aggressive monsters (only flee if outclassed)
+
+name_update devmode 8                                  - 1 round == 200 blocks (normally 2000)
+                                                       - automode after "waiting for orders" for 100 blocks (normally 1000)
+                                                       - orders must be given 50 blocks before round ends to have 100% chance
+                                                         for being effective next round (normally 500)
+
+name_update devmode x                                  devmode off (network-wide)
+
+
+
+Client only devmode (doesn't send a transaction)
+------------------------------------------------
+
+name_update devmode 1                                  monster color and equipped items (obsolete due to icons)
+name_update devmode 2                                  AI verbose
+name_update devmode f                                  not used
+name_update devmode t                                  not used
+name_update devmode 0                                  default
+
