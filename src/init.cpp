@@ -181,8 +181,10 @@ int AsciiArtTileCount[RPG_MAP_HEIGHT + 4][RPG_MAP_WIDTH + 4];
 
 int RPGMonsterPitMap[RPG_MAP_HEIGHT][RPG_MAP_WIDTH];
 
+#ifdef GUI
 int Displaycache_gamemapgood[RPG_MAP_HEIGHT][RPG_MAP_WIDTH];
 int Displaycache_gamemap[RPG_MAP_HEIGHT][RPG_MAP_WIDTH][Game::MAP_LAYERS + SHADOW_LAYERS + SHADOW_EXTRALAYERS];
+#endif
 
 // for cellular automaton
 int table1[RPG_MAP_HEIGHT + 1][RPG_MAP_WIDTH + 1];
@@ -337,11 +339,12 @@ static bool Calculate_AsciiArtMap()
                     if (AI_merchantbasemap[ya-1][xa-1] == AI_MBASEMAP_TP_EXIT_ACTIVE) { xul--; yul--; }
                     if (AI_merchantbasemap[ya+1][xa-1] == AI_MBASEMAP_TP_EXIT_ACTIVE) xul--;
                     if (AI_merchantbasemap[ya-1][xa+1] == AI_MBASEMAP_TP_EXIT_ACTIVE) yul--;
-
+#ifdef GUI
                     Displaycache_gamemap[yul][xul][0] = 27;       //  Displaycache_gamemapgood[yul][xul] = 1;
                     Displaycache_gamemap[yul][xul+1][0] = 29;     //  Displaycache_gamemapgood[yul][xul+1] = 1;
                     Displaycache_gamemap[yul+1][xul][0] = 54;     //  Displaycache_gamemapgood[yul+1][xul] = 1;
                     Displaycache_gamemap[yul+1][xul+1][0] = 55;   //  Displaycache_gamemapgood[yul+1][xul+1] = 1;
+#endif
                     AsciiArtMap[yul][xul] = '.';
                     AsciiArtMap[yul][xul+1] = '.';
 //                    if ( (!(ASCIIART_IS_TREE(AsciiArtMap[yul+2][xul+1]))) && (!(ASCIIART_IS_TREE(AsciiArtMap[yul+2][xul+2]))) )

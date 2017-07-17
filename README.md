@@ -24,3 +24,8 @@ if Qt Creator is installed after this, open huntercoin-qt.pro, and Build | Build
     qmake
     make
 
+To build the daemon (without UPNP support)
+
+    cd src
+    make -f Makefile USE_UPNP=
+

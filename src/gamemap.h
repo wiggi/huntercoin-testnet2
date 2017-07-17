@@ -376,11 +376,13 @@ extern int Rpg_TeamBalanceCount[4];
 // for gamemapview.cpp
 extern int Displaycache_blockheight;
 
+#ifdef GUI
 #define SHADOW_LAYERS 3
 #define SHADOW_EXTRALAYERS 1
 #define SHADOW_SHAPES 21
 extern int Displaycache_gamemapgood[RPG_MAP_HEIGHT][RPG_MAP_WIDTH];
 extern int Displaycache_gamemap[RPG_MAP_HEIGHT][RPG_MAP_WIDTH][Game::MAP_LAYERS + SHADOW_LAYERS + SHADOW_EXTRALAYERS];
+#endif
 
 //extern int AI_playermap[Game::MAP_HEIGHT][Game::MAP_WIDTH][Game::NUM_TEAM_COLORS];
 extern int AI_playermap[Game::MAP_HEIGHT][Game::MAP_WIDTH][4];
