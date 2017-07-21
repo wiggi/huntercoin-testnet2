@@ -4650,15 +4650,62 @@ GameState::PrintPlayerStats()
 
             fprintf(fp, "\n Block %7d, %s\n", nHeight, fTestNet ? "testnet" : "mainnet");
             fprintf(fp, " ----------------------\n\n");
-            fprintf(fp, "                                                  Survival Current walktarget               Player order\n");
-            fprintf(fp, "      Name       Level   Coins       Age  Rations points   Area and Position  Path length   Area and Position  Path length\n\n");
+            fprintf(fp, "                                                     Survival                                     AI                AI favorite area                 Player order\n");
+            fprintf(fp, "      Name     Role   Level  Coins      Age  Rations points   Weapon   Amulett  Ring     Armor    Package1 Package2 Area and Position  Path length   Area and Position  Path length\n\n");
             BOOST_FOREACH(PAIRTYPE(const PlayerID, PlayerState) &p, players)
+            {
+                int tmp_color = p.second.color;
                 BOOST_FOREACH(PAIRTYPE(const int, CharacterState) &pc, p.second.characters)
                 {
                     int i = pc.first;
                     CharacterState &ch = pc.second;
                     if (NPCROLE_IS_MERCHANT(ch.ai_npc_role)) continue;
                     if (!IsInsideMap(ch.coord.x, ch.coord.y)) continue;
+
+                    std::string srole = "";
+                    if (tmp_color == 0) srole = "<font color=yellow>";
+                    else if (tmp_color == 1) srole = "<font color=red>";
+                    else if (tmp_color == 2) srole = "<font color=green>";
+                    else if (tmp_color == 3) srole = "<font color=blue>";
+                    if (ch.ai_npc_role) srole += "Mon</font>";
+                    else srole += "PC </font>";
+
+                    std::string sw = "Dagger";
+                    if (ch.ai_slot_spell == AI_ATTACK_POISON) sw = "SoPC";
+                    else if (ch.ai_slot_spell == AI_ATTACK_FIRE) sw = "SoFB";
+                    else if (ch.ai_slot_spell == AI_ATTACK_DEATH) sw = "SotR";
+                    else if (ch.ai_slot_spell == AI_ATTACK_XBOW) sw = "Xbow";
+                    else if (ch.ai_slot_spell == AI_ATTACK_KNIGHT) sw = "Sword";
+                    else if (ch.ai_slot_spell == AI_ATTACK_ESTOC) sw = "Estoc";
+                    else if (ch.ai_slot_spell == AI_ATTACK_LIGHTNING) sw = "SoCL";
+                    else if (ch.ai_slot_spell == AI_ATTACK_XBOW3) sw = "Arba.";
+
+                    std::string sa = "  -   ";
+                    if (ch.ai_slot_amulet == AI_ITEM_WORD_RECALL) sa = "Recall";
+                    else if (ch.ai_slot_amulet == AI_ITEM_REGEN) sa = "Regen.";
+                    else if (ch.ai_slot_amulet == AI_ITEM_LIFE_SAVING) sa = "LifeS";
+
+                    std::string sr = "  -   ";
+                    if (ch.ai_slot_ring == AI_ITEM_WORD_RECALL) sr = "Recall";
+                    else if (ch.ai_slot_ring == AI_ITEM_REGEN) sr = "Regen.";
+                    else if (ch.ai_slot_ring == AI_ITEM_LIFE_SAVING) sr = "LifeS";
+
+                    std::string sar = "  -   ";
+                    if (ch.rpg_slot_armor == RPG_ARMOR_RING) sar = "Ring";
+                    else if (ch.rpg_slot_armor == RPG_ARMOR_CHAIN) sar = "Chain";
+                    else if (ch.rpg_slot_armor == RPG_ARMOR_SPLINT) sar = "Splint";
+                    else if (ch.rpg_slot_armor == RPG_ARMOR_PLATE) sar = "Plate";
+
+                    std::string sai1 = "";
+                    if (ch.ai_state & AI_STATE_MARK_RECALL) sai1 = "Mark+R";
+                    else if (ch.ai_state & AI_STATE_RESTING) sai1 = "Rest.";
+                    else if (ch.ai_state & AI_STATE_SURVIVAL) sai1 = "Surviv";
+                    else sai1 = "  -   ";
+
+                    std::string sai2 = "";
+                    if (ch.ai_state3 & AI_STATE3_FANATISM) sai2 = "Fanat.";
+                    else if (ch.ai_state3 & AI_STATE3_DUTY) sai2 = "Duty";
+                    else sai2 = "  -   ";
 
                     int tmp_fav_point = ch.ai_fav_harvest_poi;
                     if (tmp_fav_point >= AI_NUM_POI) continue;
@@ -4673,22 +4720,23 @@ GameState::PrintPlayerStats()
                     if (tmp_fav_point >= POIINDEX_NORMAL_FIRST)
                     {
                         if (tmp_queued_point > 0)
-                            fprintf(fp, "%10s.%-3d %3d   %9s   %7d  %5d  %5d     area#%-3d  %3d,%-3d    %4d            #%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points,
+                            fprintf(fp, "%10s.%-3d %s  %3d  %9s  %7d  %5d  %5d     %6s   %6s   %6s   %6s   %6s   %6s   area#%-3d  %3d,%-3d    %4d        area#%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, srole.c_str(), RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points, sw.c_str(), sa.c_str(), sr.c_str(), sar.c_str(), sai1.c_str(), sai2.c_str(),
                                     tmp_fav_point, nfx, nfy, Distance_To_POI[tmp_fav_point][ch.coord.y][ch.coord.x],
                                     tmp_queued_point, nqx, nqy, Distance_To_POI[tmp_queued_point][nfy][nfx]);
                         else
-                            fprintf(fp, "%10s.%-3d %3d   %9s   %7d  %5d  %5d     area#%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points,
+                            fprintf(fp, "%10s.%-3d %s  %3d  %9s  %7d  %5d  %5d     %6s   %6s   %6s   %6s   %6s   %6s   area#%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, srole.c_str(), RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points, sw.c_str(), sa.c_str(), sr.c_str(), sar.c_str(), sai1.c_str(), sai2.c_str(),
                                     tmp_fav_point, nfx, nfy, Distance_To_POI[tmp_fav_point][ch.coord.y][ch.coord.x]);
                     }
                     else
                     {
                         if (tmp_queued_point > 0)
-                            fprintf(fp, "%10s.%-3d %3d   %9s   %7d  %5d  %5d                                      area#%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points,
+                            fprintf(fp, "%10s.%-3d %s  %3d  %9s  %7d  %5d  %5d     %6s   %6s   %6s   %6s   %6s   %6s                                    area#%-3d  %3d,%-3d    %4d\n", p.first.c_str(), i, srole.c_str(), RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points, sw.c_str(), sa.c_str(), sr.c_str(), sar.c_str(), sai1.c_str(), sai2.c_str(),
                                     tmp_queued_point, nqx, nqy, Distance_To_POI[tmp_queued_point][ch.coord.y][ch.coord.x]);
                         else
-                            fprintf(fp, "%10s.%-3d %3d   %9s   %7d  %5d  %5d\n", p.first.c_str(), i, RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points);
+                            fprintf(fp, "%10s.%-3d %s  %3d  %9s  %7d  %5d  %5d     %6s   %6s   %6s   %6s   %6s   %6s\n", p.first.c_str(), i, srole.c_str(), RPG_CLEVEL_FROM_LOOT(ch.loot.nAmount), FormatMoney(ch.loot.nAmount / CENT * CENT).c_str(), nHeight - ch.aux_spawn_block, ch.rpg_rations, ch.rpg_survival_points, sw.c_str(), sa.c_str(), sr.c_str(), sar.c_str(), sai1.c_str(), sai2.c_str());
                     }
                 }
+            }
 
 
             fprintf(fp, "\n\n Color Teams:\n");
@@ -4705,7 +4753,6 @@ GameState::PrintPlayerStats()
                     fprintf(fp, "%10d %6s   %10d %10s   %10s.%-3d   %s\n", ic, Rpg_TeamColorDesc[ic].c_str(), Rpg_TeamBalanceCount[ic], s1.c_str(), Rpg_ChampionName[ic].c_str(), Rpg_ChampionIndex[ic], FormatMoney(Rpg_ChampionCoins[ic] / CENT * CENT).c_str());
                 else
                     fprintf(fp, "%10d %6s   %10d %10s\n", ic, Rpg_TeamColorDesc[ic].c_str(), Rpg_TeamBalanceCount[ic], s1.c_str());
-
             }
 
 
@@ -5009,9 +5056,10 @@ bool Game::PerformStep(const GameState &inState, const StepData &stepData, GameS
     Displaycache_blockheight = outState.nHeight;
     printf("AI main function height %d finished %15"PRI64d"ms\n", outState.nHeight, GetTimeMillis() - ai_nStart);
 
+#ifdef GUI
     // playground -- stat lists
     outState.PrintPlayerStats();
-
+#endif
 
     bool respawn_crown = false;
     outState.UpdateCrownState(respawn_crown);
