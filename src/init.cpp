@@ -163,14 +163,14 @@ short POI_type[AI_NUM_POI]   = {  1,   5,   2,   6,   3,   7,   4,   8,  13,  14
 //       and (in case of teleport merchant) the teleporters POI_type
 //                                                                                                                                                                   team score info              4*book
 //                                           8*teleport                            info info 2*reserve armor SoPC   A+RoWR AoPM estoc xbow1+3  champ ration 2*armor  v    3*ration     sword armor m+r rest surv cour  2*staff  AoLS lightning
-short Merchant_base_x[NUM_MERCHANTS] =   {0,  7, 496, 494,  13, 246, 255, 255, 244, 208, 208, 252, 250,   6, 255, 250, 245, 254,   3,  17,  19, 262, 275, 263, 265, 212, 273, 273, 272, 478, 479, 230, 232, 237, 235, 251, 250, 240, 490};
-short Merchant_base_y[NUM_MERCHANTS] =   {0,  8,   4, 492, 491, 242, 243, 255, 254, 264, 265, 238, 237,  16, 251, 248, 250, 245,  15, 484, 487, 235, 246, 237, 239, 258, 247, 249, 250,  14,  15, 243, 245, 273, 274, 244, 256, 242, 497};
+short Merchant_base_x[NUM_MERCHANTS] =   {0,  7, 496, 494,  13, 246, 255, 255, 244, 208, 208, 252, 250,   6, 255, 250, 245, 254,   3, 265,  19, 262, 275, 263,  17, 212, 273, 273, 272, 478, 479, 230, 232, 237, 235, 251, 250, 240, 490};
+short Merchant_base_y[NUM_MERCHANTS] =   {0,  8,   4, 492, 491, 242, 243, 255, 254, 264, 265, 238, 237,  16, 251, 248, 250, 245,  15, 239, 487, 235, 246, 237, 484, 258, 247, 249, 250,  14,  15, 243, 245, 273, 274, 244, 256, 242, 497};
 
 // no effect on gameplay but can't change color if merch already exists
 //                                           8*teleport
 short Merchant_color[NUM_MERCHANTS] =    {0,  0,  1,   2,   3,   0,   1,   2,   3,   0,   1,   2,   3,   1,   0,   0,   0,   2,   3,   1,   3,   2,   3,   1,   1,   3,   1,   3,   1,   3,   1,   3,   1,   0,   0,   2,   2,   3,   2};
 short Merchant_sprite[NUM_MERCHANTS] =   {0,  6,  8,   9,   7,   6,   8,   9,   7,  21,  22,   9,  16,  15,   5,   4,   6,   9,  14,  20,  16,  17,  18,  19,  20,  18,   5,  21,  19,   7,   8,   7,  15,   4,  26,  25,  24,  27,  17};
-short Merchant_chronon[NUM_MERCHANTS] =  {0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}; // 2575};
+short Merchant_chronon[NUM_MERCHANTS] =  {0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
 
 // note: need at least 3 additional columns (CR, LF, '\0') and 2 additional lines (2 tiles offset for cliffs because of their "height")
 char AsciiArtMap[RPG_MAP_HEIGHT + 4][RPG_MAP_WIDTH + 4];

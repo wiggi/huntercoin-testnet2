@@ -152,11 +152,11 @@ Balance between colors and between players and monsters
 
  (The AI of) every character will be overconfident in combat
   if the number of monsters is less than half the number of hunters
-  or In case of more characters on map than target value
- This is high risk, high reward. Players can still choose to stay home at their team's base.
+  or In case of more characters on map than target value (reaching 2000 characters at block 180k)
+ This is high risk, high reward. Players can still choose to stay home at their base.
 
- In case of less characters on map than target value, hearts will spawn (like in old Huntercoin times).
- Running over a tile with a heart creates a free (no coins locked) character.
+ In case of less characters on map than target value, hearts will spawn, like in old Huntercoin times.
+ Running over a tile with a heart creates a free character with no coins locked ("heart soldier").
 
 
 Upkeep and Survival Points
@@ -176,9 +176,14 @@ All drinkables are delivered once per round with the rations:
 Pazunia Sun Ale                        if failing morale check and choosing an area to retreat, don't go back to area ordered by player
 
 Pale Sweet Marrow                      go back once
+                                       (aka Potion of Duty)
 
 Red Pit Ichor                          while the order is in effect, keep going back until the area is cleared
-                                       (or you die or teleport out with Word of Recall)
+                                       or you die or teleport out with Word of Recall
+                                       (aka Potion of Fanatism)
+
+
+ Players can send their characters "on vacation" so that they don't need any upkeep. This is limited to 50000 characters.
 
 
 

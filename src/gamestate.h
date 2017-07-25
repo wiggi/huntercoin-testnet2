@@ -287,7 +287,7 @@ struct CharacterState
     unsigned char rpg_slot_armor;
     int aux_spawn_block;
     int aux_last_sale_block;
-    int64 ai_reserve5;
+    int64 aux_stasis_block; // can be int
     int64 ai_reserve6;
 
     CharacterState ()
@@ -335,7 +335,7 @@ struct CharacterState
         rpg_slot_armor(0),
         aux_spawn_block(0),
         aux_last_sale_block(0),
-        ai_reserve5(0),
+        aux_stasis_block(0),
         ai_reserve6(0)
     {}
 
@@ -393,7 +393,7 @@ struct CharacterState
         READWRITE(rpg_slot_armor);
         READWRITE(aux_spawn_block);
         READWRITE(aux_last_sale_block);
-        READWRITE(ai_reserve5);
+        READWRITE(aux_stasis_block);
         READWRITE(ai_reserve6);
     )
 

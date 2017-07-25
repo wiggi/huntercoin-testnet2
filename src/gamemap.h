@@ -74,7 +74,11 @@ inline bool IsInSpawnArea(int x, int y)
 #define AI_BLOCKS_SINCE_MONSTERAPOCALYPSE (out_height % INTERVAL_MONSTERAPOCALYPSE)
 #define AI_COMMAND_CHAMPION_REQUIRED_SP ((INTERVAL_MONSTERAPOCALYPSE / (AI_BLOCKS_SINCE_MONSTERAPOCALYPSE + 1)) + 5)
 #define INTERVAL_BOUNTYCYCLE (Gamecache_devmode == 8 ? 1000 : 10000)
-#define AI_PRICE_RATION (Gamecache_devmode == 8 ? (COIN * 0.2) : (COIN * 2))
+
+#define RPG_RATION_INIT_AMOUNT 10
+#define RPG_PRICE_RATION (Gamecache_devmode == 8 ? 30000000 : 300000000)
+#define RGP_POPULATION_TARGET(H) (H>180000?2000:(200+(H/100)))
+#define RGP_POPULATION_LIMIT 50000
 
 // todo: use dist to POI centered at 250,250 instead
 #define AI_IS_NEAR_CENTER(X,Y) ((X>100)&&(X<400)&&(Y>100)&&(Y<400))
@@ -108,7 +112,7 @@ extern bool RPG_BLUE_BASE_PERIMETER(int X, int Y);
 #define AI_STATE2_ESSENTIAL 8
 #define AI_STATE2_ESCAPE 32
 #define AI_STATE2_NORMAL_TP 64
-#define AI_STATE2_ORDER_ARMED 128 // not used
+#define AI_STATE2_STASIS 128
 
 #define AI_STATE3_DUTY 1
 #define AI_STATE3_FANATISM 2
@@ -147,8 +151,8 @@ extern bool RPG_BLUE_BASE_PERIMETER(int X, int Y);
 #define MERCH_INFO_TOTAL_POPULATION 9
 #define MERCH_INFO_DEVMODE 10
 
-#define MMERCH_INFO_PC_COUNT 11
-#define MMERCH_INFO_MON_COUNT 12
+#define MERCH_STASIS 11
+#define MERCH_RESERVE 12
 
 #define MERCH_ARMOR_SPLINT 13
 #define MERCH_STINKING_CLOUD 14
@@ -342,8 +346,6 @@ extern bool Rpg_berzerk_rules_in_effect;
 extern int Rpg_TeamBalanceCount[4];
 //extern std::string Rpg_TeamColorDesc[4];
 
-#define RGP_POPULATION_LIMIT(H) (H>180000?2000:(200+(H/100)))
-
 #define AI_REASON_SHOP 'S'
 #define AI_REASON_ENGAGE 'E'
 #define AI_REASON_SHINY 'c'
@@ -354,7 +356,8 @@ extern int Rpg_TeamBalanceCount[4];
 
 #define AI_REASON_LONGPATH 'l'
 
-#define AI_REASON_MON_HARVEST 'm'
+#define AI_REASON_MON_AREA 'm'
+#define AI_REASON_MON_NEAREST 'n'
 #define AI_REASON_MON_PROWL 'p'
 
 #define AI_REASON_RETREAT_BARELY '2'

@@ -740,6 +740,61 @@ void CharacterState::MoveTowardsWaypointX_Merchants(RandomGenerator &rnd, int co
     }
 
 
+    // spawn block, upkeep and survival points
+    if (aux_spawn_block == 0)
+    {
+        aux_spawn_block = out_height - 1; // was spawned last block
+        rpg_rations = RPG_RATION_INIT_AMOUNT;
+    }
+    // after going into stasis, chars must pay for 1 more ration
+    if (!(NPCROLE_IS_MERCHANT(ai_npc_role)))
+    if ((out_height - aux_spawn_block) % INTERVAL_MONSTERAPOCALYPSE == 0)
+        if ( (!(ai_state2 & AI_STATE2_STASIS)) || (aux_stasis_block >= out_height - INTERVAL_MONSTERAPOCALYPSE) || (Rpg_TotalPopulationCount > RGP_POPULATION_LIMIT) )
+    {
+        rpg_rations--;
+
+        if (rpg_rations >= 0)
+        {
+            rpg_survival_points++;
+        }
+        else if (loot.nAmount >= RPG_PRICE_RATION)
+        {
+            if (AI_dbg_allow_payments)
+            if (Merchant_exists[MERCH_RATIONS_TEST])
+            {
+                loot.nAmount -= RPG_PRICE_RATION;
+                Merchant_sats_received[MERCH_RATIONS_TEST] += RPG_PRICE_RATION;
+            }
+            rpg_rations = 0;
+            rpg_survival_points++;
+        }
+        // prepare to logout due to starving
+        else
+        {
+            stay_in_spawn_area = MAX_STAY_IN_SPAWN_AREA;
+            ai_state2 &= ~(AI_STATE2_STASIS); // clear these flags
+
+            coord.x = ((color_of_moving_char == 1) || (color_of_moving_char == 2)) ? MAP_WIDTH - 1 : 0;
+            coord.y = (color_of_moving_char >= 2) ? MAP_HEIGHT - 1 : 0;
+            ai_idle_time = 0;
+            from = coord;
+            ai_state2 |= AI_STATE2_NORMAL_TP;
+            return; // no further move if teleported
+        }
+    }
+    if (ai_state2 & AI_STATE2_STASIS)
+    {
+        if (waypoints.empty())
+        {
+            return;
+        }
+        else
+        {
+            ai_state2 &= ~(AI_STATE2_STASIS); // clear these flags
+        }
+    }
+
+
     // reset character stats (some merely for debugging)
     {
         ai_mapitem_count = 0;
@@ -1035,10 +1090,12 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
         ai_state2 |= AI_STATE2_DEATH_DEATH;
     }
 
-
+/*
     // upkeep and survival points
+    // after going into stasis, chars must pay for 1 more ration
     if (!(NPCROLE_IS_MERCHANT(ai_npc_role)))
     if ((aux_spawn_block > 0) && ((out_height - aux_spawn_block) % INTERVAL_MONSTERAPOCALYPSE == 0))
+    if ( (!(ai_state2 & AI_STATE2_STASIS)) || (aux_stasis_block >= out_height - INTERVAL_MONSTERAPOCALYPSE) )
     {
         rpg_rations--;
 
@@ -1046,13 +1103,13 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
         {
             rpg_survival_points++;
         }
-        else if (loot.nAmount >= AI_PRICE_RATION)
+        else if (loot.nAmount >= RPG_PRICE_RATION)
         {
             if (AI_dbg_allow_payments)
             if (Merchant_exists[MERCH_RATIONS_TEST])
             {
-                loot.nAmount -= AI_PRICE_RATION;
-                Merchant_sats_received[MERCH_RATIONS_TEST] += AI_PRICE_RATION;
+                loot.nAmount -= RPG_PRICE_RATION;
+                Merchant_sats_received[MERCH_RATIONS_TEST] += RPG_PRICE_RATION;
             }
             rpg_rations = 0;
             rpg_survival_points++;
@@ -1061,6 +1118,7 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
         else
         {
             stay_in_spawn_area = MAX_STAY_IN_SPAWN_AREA;
+            ai_state2 &= ~(AI_STATE2_STASIS); // clear these flags
 
             coord.x = ((color_of_moving_char == 1) || (color_of_moving_char == 2)) ? MAP_WIDTH - 1 : 0;
             coord.y = (color_of_moving_char >= 2) ? MAP_HEIGHT - 1 : 0;
@@ -1070,7 +1128,18 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
             return; // no further move if teleported
         }
     }
-
+    if (ai_state2 & AI_STATE2_STASIS)
+    {
+        if (waypoints.empty())
+        {
+            return;
+        }
+        else
+        {
+            ai_state2 &= ~(AI_STATE2_STASIS); // clear these flags
+        }
+    }
+*/
 
     // normal PCs and monsters can do ranged attacks (skip for merchants)
     int max_range = 0;
@@ -1487,6 +1556,18 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                 ai_idle_time = 0;
                 from = coord;
                 return; // no further move if teleported
+            }
+            // go into stasis
+            // we know that the character is currently standing still here and the stasis flag is not set
+            else if ((coord.x == Merchant_base_x[MERCH_STASIS]) && (coord.y == Merchant_base_y[MERCH_STASIS]) && (Merchant_exists[MERCH_STASIS]))
+            {
+                aux_stasis_block = out_height;
+
+                ai_state2 |= AI_STATE2_STASIS;
+                ai_idle_time = 0;
+                ai_retreat = 0;
+                from = coord;
+                return; // no further move
             }
 
 
@@ -2028,11 +2109,14 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                     // (mons always walk and don't use teleporters)
                     if ((k0 >= 0) && (k0 < AI_NUM_POI))
                     {
-                        if ((POI_type[k0] == POITYPE_HARVEST1) || (POI_type[k0] == POITYPE_HARVEST2))
+//                      if ((POI_type[k0] == POITYPE_HARVEST1) || (POI_type[k0] == POITYPE_HARVEST2) ||
+//                          (POI_type[k0] == POITYPE_CENTER)) // mons can also go to center if fleeing
+                        if ((k0 >= POIINDEX_NORMAL_FIRST) || (k0 == POIINDEX_CENTER))
                         {
                             d_best = Distance_To_POI[k0][y][x];
                             k_best = k0;
 
+                            ai_reason = AI_REASON_MON_AREA;
                         }
                     }
 
@@ -2040,7 +2124,7 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                     if (k_best < 0)
                     {
                         if (k0 != AI_POI_MONSTER_GO_TO_NEAREST)
-                            printf("MoveTowardsWaypoint: Warning: bad monster ai_fav_harvest_poi\n");
+                            printf("MoveTowardsWaypoint: Warning: monster at %d,%d has bad ai_fav_harvest_poi\n", x, y);
 
                         for (int k = 0; k < AI_NUM_POI; k++)
                         {
@@ -2058,12 +2142,9 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                         if (k_best >= 0)
                         {
                             ai_fav_harvest_poi = k_best;
-                        }
-                    }
 
-                    if (k_best >= 0)
-                    {
-                        ai_reason = AI_REASON_MON_HARVEST;
+                            ai_reason = AI_REASON_MON_NEAREST;
+                        }
                     }
                 }
 
@@ -2185,7 +2266,7 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                     int k0 = ai_fav_harvest_poi;
                     int d = d_best;
 
-                    // set directly if in in array bounds
+                    // set directly if in array bounds
                     if ((k0 >= 0) && (k0 < AI_NUM_POI))
                     {
                         d = Distance_To_POI[k0][y][x];
@@ -2292,7 +2373,7 @@ void CharacterState::MoveTowardsWaypointX_Pathfinder(RandomGenerator &rnd, int c
                     int k0 = ai_fav_harvest_poi;
                     int d = d_best;
 
-                    // set directly if in in array bounds
+                    // set directly if in array bounds
                     if ((k0 >= 0) && (k0 < AI_NUM_POI))
                     {
                         d = Distance_To_POI[k0][y][x];
@@ -3577,6 +3658,8 @@ GameState::KillRangedAttacks (StepResult& step)
             if ((i == 0) && (NPCROLE_IS_MERCHANT(ch.ai_npc_role)))
                 general_is_merchant = true;
 
+            if (ch.ai_state2 & AI_STATE2_STASIS) continue;
+
             // hunter messages (for manual destruct)
             CharacterID chid(p.first, i);
             // printf("testing for destruct: character name=%s\n", chid.ToString().c_str());
@@ -3882,6 +3965,8 @@ GameState::Pass0_CacheDataForGame ()
                 {
                     Rpg_TeamBalanceCount[tmp_color] += tmp_score; // assumes 1 lvl N+1 character is worth 10 lvl N characters
 
+                    if (ch.ai_state2 & AI_STATE2_STASIS) continue;
+
                     AI_playermap[y][x][tmp_color] += tmp_score;
 
                     // ranged attacks -- cache resists
@@ -3929,7 +4014,7 @@ GameState::Pass0_CacheDataForGame ()
 /*
                     // apply melee attacks here in case of over-populytion
                     // (characters who died in previous block would be able to retaliate with melee attack)
-                    if (Rpg_TotalPopulationCount > RGP_POPULATION_LIMIT(outState.nHeight)) // Rpg_berzerk_rules_in_effect not yet determined here
+                    if (Rpg_TotalPopulationCount > RGP_POPULATION_TARGET(outState.nHeight)) // Rpg_berzerk_rules_in_effect not yet determined here
                     {
                       // melee attacks (everyone has range 1 "death" attack)
                       // the attacker will not know if they hit anything, and there's no visual effect.
@@ -3958,6 +4043,7 @@ GameState::Pass0_CacheDataForGame ()
                       }
                     }
 */
+                    // this is also skipped if the character is in stasis
                     for (int n = POIINDEX_NORMAL_FIRST; n <= POIINDEX_NORMAL_LAST; n++) // only harvest areas
                     {
                         int d = Distance_To_POI[n][y][x];
@@ -3998,9 +4084,9 @@ GameState::Pass0_CacheDataForGame ()
     Rpg_MonsterCount = Rpg_PopulationCount[MONSTER_REAPER] + Rpg_PopulationCount[MONSTER_SPITTER] + Rpg_PopulationCount[MONSTER_REDHEAD];
     Rpg_less_monsters_than_players = (Rpg_MonsterCount < Rpg_PopulationCount[0]);
     Rpg_need_monsters_badly = (Rpg_MonsterCount * 2 < Rpg_PopulationCount[0]);
-    Rpg_hearts_spawn = ((Rpg_TotalPopulationCount < RGP_POPULATION_LIMIT(nHeight)) &&
+    Rpg_hearts_spawn = ((Rpg_TotalPopulationCount < RGP_POPULATION_TARGET(nHeight)) &&
                         (Rpg_MissingMerchantCount == 0)); // make sure that merchants are always "generals"
-    Rpg_berzerk_rules_in_effect = ((Rpg_TotalPopulationCount > RGP_POPULATION_LIMIT(nHeight)) ||
+    Rpg_berzerk_rules_in_effect = ((Rpg_TotalPopulationCount > RGP_POPULATION_TARGET(nHeight)) ||
                                    (Rpg_need_monsters_badly));
 
     for (int nm = 1; nm <= MERCH_NORMAL_LAST; nm++)
@@ -4143,7 +4229,7 @@ GameState::Pass1_DAO()
 //                                        Merchant_sats_received[MERCH_RATIONS_TEST] += p.second.coins_fee;
                                         Merchant_sats_received[MERCH_INFO_DEVMODE] += p.second.coins_fee;
                                     }
-                                    ch.rpg_rations += p.second.coins_fee / AI_PRICE_RATION;
+                                    ch.rpg_rations += p.second.coins_fee / RPG_PRICE_RATION;
                                 }
                                 break;
                             }
@@ -4180,35 +4266,46 @@ GameState::Pass1_DAO()
                     CharacterState &ch = pc.second;
 
                     // Merchants can't vote (but monsters can)
-                    if (NPCROLE_IS_MERCHANT(ch.ai_npc_role))
+                    if ((NPCROLE_IS_MERCHANT(ch.ai_npc_role)) ||
+                        (ch.ai_state2 & AI_STATE2_STASIS))
                     {
                         is_merchant = true;
                     }
-                    else if (bountycycle_block == 0)
+                    else
                     {
-                        if (i == 0)
-                            ch.rpg_rations += 3;
-                        else
-                            ch.rpg_rations += 2;
+                        // only the char that is merch or in stasis can't vote
+                        tmp_weight += (ch.loot.nAmount);
+
+                        if (bountycycle_block == 0)
+                        if (ch.rpg_rations < RPG_RATION_INIT_AMOUNT - 3)
+                        {
+                            if (i == 0)
+                                ch.rpg_rations += 3;
+                            else
+                                ch.rpg_rations += 2;
+                        }
                     }
+                }
 
-                    tmp_weight += (ch.loot.nAmount);
-                }
-                if (is_merchant) tmp_weight = 0;
+                // player can't vote if one of the chars is merch or in stasis
+//                if (is_merchant) tmp_weight = 0;
 
-                Cache_voteweight_total += tmp_weight;
-                if (tmp_vote == 0)
+                if (tmp_weight > 0)
                 {
-                    Cache_voteweight_zero += tmp_weight;
-                }
-                else if (tmp_vote == dao_BestRequestFinal)
-                {
-                    Cache_voteweight_full += tmp_weight;
-                }
-                else
-                {
-                    Cache_voteweight_part += tmp_weight;
-                    Cache_vote_part += (tmp_vote / COIN) * (tmp_weight / COIN);
+                    Cache_voteweight_total += tmp_weight;
+                    if (tmp_vote == 0)
+                    {
+                        Cache_voteweight_zero += tmp_weight;
+                    }
+                    else if (tmp_vote == dao_BestRequestFinal)
+                    {
+                        Cache_voteweight_full += tmp_weight;
+                    }
+                    else
+                    {
+                        Cache_voteweight_part += tmp_weight;
+                        Cache_vote_part += (tmp_vote / COIN) * (tmp_weight / COIN);
+                    }
                 }
             }
         }
@@ -4320,6 +4417,7 @@ GameState::Pass2_Melee()
             }
 
             // apply melee attacks here (always)
+            if (!(ch.ai_state2 & AI_STATE2_STASIS))
             {
                 int tmp_m = ch.ai_npc_role;
                 int x = ch.coord.x;
@@ -4408,6 +4506,7 @@ GameState::Pass3_PaymentAndHitscan()
 
             // hitscan for ranged attacks
             if (!(NPCROLE_IS_MERCHANT(tmp_m)))
+            if (!(ch.ai_state2 & AI_STATE2_STASIS))
             {
                 int x = ch.coord.x;
                 int y = ch.coord.y;
@@ -4663,7 +4762,8 @@ GameState::PrintPlayerStats()
                     if (!IsInsideMap(ch.coord.x, ch.coord.y)) continue;
 
                     std::string srole = "";
-                    if (tmp_color == 0) srole = "<font color=yellow>";
+                    if (ch.ai_state2 & AI_STATE2_STASIS) srole = "<font color=white>";
+                    else if (tmp_color == 0) srole = "<font color=yellow>";
                     else if (tmp_color == 1) srole = "<font color=red>";
                     else if (tmp_color == 2) srole = "<font color=green>";
                     else if (tmp_color == 3) srole = "<font color=blue>";
@@ -4759,7 +4859,7 @@ GameState::PrintPlayerStats()
             fprintf(fp, "\n\n Global Stats:\n");
             fprintf(fp, " -------------\n\n");
             fprintf(fp, "Total population (current): %10d\n", Rpg_TotalPopulationCount);
-            fprintf(fp, "Total population (target):  %10d\n", RGP_POPULATION_LIMIT(nHeight));
+            fprintf(fp, "Total population (target):  %10d\n", RGP_POPULATION_TARGET(nHeight));
             fprintf(fp, "Player population:          %10d\n", Rpg_PopulationCount[0]);
             fprintf(fp, "Monster population:         %10d\n\n", Rpg_MonsterCount);
 
@@ -4809,6 +4909,7 @@ GameState::PrintPlayerStats()
                 {
                     CharacterState &ch = pc.second;
                     if (NPCROLE_IS_MERCHANT(ch.ai_npc_role)) continue;
+                    if (ch.ai_state2 & AI_STATE2_STASIS) continue;
 
                     total_loot += ch.loot.nAmount;
                 }
@@ -5036,15 +5137,9 @@ bool Game::PerformStep(const GameState &inState, const StepData &stepData, GameS
         {
             CharacterState &ch = pc.second;
 
-            // spawn block is used only for pathfinding (todo: move to begin of MoveTowardsWaypointX_Merchants)
-            if (ch.aux_spawn_block == 0)
-            {
-                ch.aux_spawn_block = outState.nHeight - 1; // was spawned last block
-                ch.rpg_rations = 10;
-            }
-
             pc.second.MoveTowardsWaypointX_Merchants(rnd0, p.second.color, outState.nHeight);
-            pc.second.MoveTowardsWaypointX_Pathfinder(rnd0, p.second.color, outState.nHeight);
+            if (!(ch.ai_state2 & AI_STATE2_STASIS))
+                pc.second.MoveTowardsWaypointX_Pathfinder(rnd0, p.second.color, outState.nHeight);
         }
     }
 
@@ -5077,6 +5172,7 @@ bool Game::PerformStep(const GameState &inState, const StepData &stepData, GameS
 
             // playground -- no banking if you have open positions (obsolete)
             if (ch.ai_state2 & AI_STATE2_ESSENTIAL) continue;
+            if (ch.ai_state2 & AI_STATE2_STASIS) continue;
 
 
             if (ch.loot.nAmount > 0 && IsInSpawnArea(ch.coord))

@@ -7,11 +7,11 @@ Testnet2 is a complete overhaul of Huntercoin as a simulation game with strategy
 
 Testnet2 doesn't interfere with an existing installation of Huntercoin, always starts on testnet, using 'testnet2' subfolder
 
-Windows build: (use 'huntercoin-qt.exe' to play online, or the shortcuts for offline testing)
+Windows build:
 
-hunttest_20170715.zip, 18.1 MB
+huntercoin-testnet2-20170725.zip, 10.9 MB
 
-https://mega.nz/#!SR8lCKRY!37mizyFDEjL8tY2J2G_SXhLslbX0X8zX0Q6sfpjxOtY
+https://mega.nz/#!bV0yQZiI!Jc4AY-v4RpkkrdBXREwbpfvGsJlGRz5LD_DFHEHlLfE
 
 To build on a new Ubuntu 16.04 or Linux Mint 18
 
@@ -28,4 +28,8 @@ To build the daemon (without UPNP support)
 
     cd src
     make -f Makefile USE_UPNP=
+
+in case of 'cannot find -lgthread-2.0'
+
+    apt-get install libgtk2.0-dev
 

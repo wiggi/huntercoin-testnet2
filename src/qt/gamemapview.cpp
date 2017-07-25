@@ -1773,6 +1773,8 @@ void GameMapView::updateGameMap(const GameState &gameState)
 //                entry.name += QString::fromUtf8(" \u265B");
 
             // playground -- info text
+            if (characterState.ai_state2 & AI_STATE2_STASIS) continue;
+
             if (characterState.ai_state & AI_STATE_FARM_OUTER_RING)
             {
                 if (characterState.ai_state & AI_STATE_AUTO_MODE)
@@ -1978,15 +1980,21 @@ void GameMapView::updateGameMap(const GameState &gameState)
                 }
                 else if (tmp_npc_role == MERCH_CANTEEN_FANATISM)
                 {
-                    entry.name += QString::fromStdString(" 'Red Pit Ichor, 2 coins per ration'");
+                    entry.name += QString::fromStdString(" 'order Red Pit Ichor here, ");
+                    entry.name += QString::fromStdString(FormatMoney(RPG_PRICE_RATION));
+                    entry.name += QString::fromStdString(" coins per ration'");
                 }
                 else if (tmp_npc_role == MERCH_CANTEEN_DUTY)
                 {
-                    entry.name += QString::fromStdString(" 'Pale Sweet Marrow, 2 coins per ration'");
+                    entry.name += QString::fromStdString(" 'order Pale Sweet Marrow here, ");
+                    entry.name += QString::fromStdString(FormatMoney(RPG_PRICE_RATION));
+                    entry.name += QString::fromStdString(" coins per ration'");
                 }
                 else if (tmp_npc_role == MERCH_CANTEEN_FREEDOM)
                 {
-                    entry.name += QString::fromStdString(" 'Pazunia Sun Ale, 2 coins per ration'");
+                    entry.name += QString::fromStdString(" 'order Pazunia Sun Ale here, ");
+                    entry.name += QString::fromStdString(FormatMoney(RPG_PRICE_RATION));
+                    entry.name += QString::fromStdString(" coins per ration'");
                 }
                 else if ((tmp_npc_role == MERCH_AUX_INFO0) && (Rpg_TeamBalanceCount[0] + Rpg_TeamBalanceCount[1] + Rpg_TeamBalanceCount[2] + Rpg_TeamBalanceCount[3]))
                 {
@@ -2053,7 +2061,7 @@ void GameMapView::updateGameMap(const GameState &gameState)
                     entry.name += QString::fromStdString("                    Total population ");
                     entry.name += QString::number(Rpg_TotalPopulationCount);
                     entry.name += QString::fromStdString(", target ");
-                    entry.name += QString::number(RGP_POPULATION_LIMIT(gameState.nHeight));
+                    entry.name += QString::number(RGP_POPULATION_TARGET(gameState.nHeight));
                     entry.name += QString::fromStdString("'");
                     if (Rpg_berzerk_rules_in_effect)
                         entry.name += QString::fromStdString(", berzerk rules in effect");
@@ -2070,6 +2078,10 @@ void GameMapView::updateGameMap(const GameState &gameState)
                 else if (tmp_npc_role == MERCH_RATIONS_TEST)
                 {
                     entry.name += QString::fromStdString(" 'Field Ration Delivery Service'");
+                }
+                else if (tmp_npc_role == MERCH_STASIS)
+                {
+                    entry.name += QString::fromStdString(" 'Free unlimited vacations'");
                 }
                 else
                 {
@@ -2184,8 +2196,10 @@ void GameMapView::updateGameMap(const GameState &gameState)
                 else if (characterState.ai_reason == AI_REASON_LONGPATH)
                     entry.name += QString::fromStdString(" <study map>");
 
-                else if (characterState.ai_reason == AI_REASON_MON_HARVEST)
-                    entry.name += QString::fromStdString(" <mon harvest>");
+                else if (characterState.ai_reason == AI_REASON_MON_AREA)
+                    entry.name += QString::fromStdString(" <mon area>");
+                else if (characterState.ai_reason == AI_REASON_MON_NEAREST)
+                    entry.name += QString::fromStdString(" <mon nearest>");
                 else if (characterState.ai_reason == AI_REASON_MON_PROWL)
                     entry.name += QString::fromStdString(" <mon prowl>");
 
